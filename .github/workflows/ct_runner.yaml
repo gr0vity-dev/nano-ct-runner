@@ -1,0 +1,44 @@
+name: Dynamic Job Execution
+
+on: [push]
+
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+    outputs:
+      user_id: ${{ steps.parse_config.outputs.user_id }}
+      suite_id: ${{ steps.parse_config.outputs.suite_id }}
+      testcases: ${{ steps.parse_config.outputs.testcases }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
+
+      - name: Parse config
+        id: parse_config
+        run: |
+          echo "user_id=$(python ci/parse_config.py user_id)" >> $GITHUB_OUTPUT
+          echo "suite_id=$(python ci/parse_config.py suite_id)" >> $GITHUB_OUTPUT
+          echo "testcases=$(python ci/parse_config.py testcases)" >> $GITHUB_OUTPUT
+
+  job_1:
+    needs: setup
+    if: fromJson(needs.setup.outputs.testcases).job_1    
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run Job 1
+        run: echo "Running Job 1 with user_id=${{ needs.setup.outputs.user_id }} and suite_id=${{ needs.setup.outputs.suite_id }}"
+
+  job_2:
+    name: "Job 2"
+    needs: setup
+    if: fromJson(needs.setup.outputs.testcases).job_2
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run Job 2
+        run: echo "Running Job 2 with user_id=${{ needs.setup.outputs.user_id }} and suite_id=${{ needs.setup.outputs.suite_id }}"
