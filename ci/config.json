@@ -1,7 +1,8 @@
 {
-  "user_id": "1268dg",
+  "user_id": "gr0vity-testing",
   "suite_id": "487B2E7D5e1c01dDa2BD44e5844f3bc7",
+  "docker_tag": "nanocurrency\\/nano-beta:V25.0DB34",
   "testcases": {
-    "job_2": true
+    "n3pr_20k_200bps": true
   }
 }

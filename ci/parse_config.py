@@ -12,6 +12,8 @@ def main():
         print(config["user_id"])
     elif key == "suite_id":
         print(config["suite_id"])
+    elif key == "docker_tag":
+        print(config["docker_tag"])
     else:
         print(json.dumps(config["testcases"]))
 

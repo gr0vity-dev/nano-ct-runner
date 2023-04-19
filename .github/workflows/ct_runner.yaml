@@ -8,6 +8,7 @@ jobs:
     outputs:
       user_id: ${{ steps.parse_config.outputs.user_id }}
       suite_id: ${{ steps.parse_config.outputs.suite_id }}
+      docker_tag: ${{ steps.parse_config.outputs.docker_tag }}
       testcases: ${{ steps.parse_config.outputs.testcases }}
 
     steps:
@@ -24,6 +25,7 @@ jobs:
         run: |
           echo "user_id=$(python ci/parse_config.py user_id)" >> $GITHUB_OUTPUT
           echo "suite_id=$(python ci/parse_config.py suite_id)" >> $GITHUB_OUTPUT
+          echo "docker_tag=$(python ci/parse_config.py docker_tag)" >> $GITHUB_OUTPUT
           echo "testcases=$(python ci/parse_config.py testcases)" >> $GITHUB_OUTPUT
 
   job_1:
@@ -42,3 +44,27 @@ jobs:
     steps:
       - name: Run Job 2
         run: echo "Running Job 2 with user_id=${{ needs.setup.outputs.user_id }} and suite_id=${{ needs.setup.outputs.suite_id }}"
+  
+  n3pr_20k_200bps:
+    needs: setup
+    name: Bintree 4nodes 3reps 20k blocks 200bps 
+    if: fromJson(needs.setup.outputs.testcases).n3pr_20k_200bps    
+    runs-on: ubuntu-latest    
+    steps:
+      - name: Check nano-speed-testsuite
+        uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 #v3.1.0       
+        with:
+          repository: gr0vity-dev/nano-speed-testsuite
+          token: ${{ secrets.GH_PAT }}
+          ref: ct-api 
+      - name: DEBUG run specific docker version   
+        run: for f in speedsuite/testcases/nanolocal/*/*.json; do sed -i 's/nano_node_cdci/${{ needs.setup.outputs.docker_tag }}/g' $f; done
+      - name: Setup python venv
+        run: ./setup_python_venv.sh
+      - name: Run 3node_bintree_100k_1000bps
+        run: ./speedsuite.py speedsuite/testcases/nanolocal/3node_network/20k_bintree.json
+      - name: query_testcases_all_rows
+        run: |
+          ./venv_nanolocal/bin/python3 -c "from speedsuite.sql.query_testcase import NanoSqlQuery; NanoSqlQuery().query_testcases_all_rows()"
+          ./venv_nanolocal/bin/python3 -c "from speedsuite.sql.query_testcase import NanoSqlQuery; NanoSqlQuery().query_testcases_detail()"
+          ./venv_nanolocal/bin/python3 -c "from speedsuite.sql.query_testcase import NanoSqlQuery; NanoSqlQuery().query_status_by_testid()"
