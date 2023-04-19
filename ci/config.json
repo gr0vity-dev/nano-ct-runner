@@ -1,8 +1,7 @@
 {
-    "user_id" : "AAA",
-    "suite_id" : "BBB",
-    "testcases": {
-        "job_1": true,
-        "job_2": false
-    }
+  "user_id": "1268dg",
+  "suite_id": "487B2E7D5e1c01dDa2BD44e5844f3bc7",
+  "testcases": {
+    "job_2": true
+  }
 }
